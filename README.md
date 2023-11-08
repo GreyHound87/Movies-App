@@ -1,6 +1,6 @@
 # Приложение Movies App для поиска и оценки фильмов
 
-## Ссылка на работающее приложение: search-n-rate-movies.vercel.app
+## [Ссылка на работающее приложение](https://search-n-rate-movies.vercel.app/)
 
 Разработано на React с использованием API The Movie Database. Интерфейс создан с использованием библиотеки Ant Design.
 
