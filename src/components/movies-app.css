@@ -1,0 +1,70 @@
+.movies-app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  padding: 4px 36px;
+}
+
+.additional-alert {
+  text-align: center;
+}
+
+.movies-app__additional-alert {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+/* .movies-app__wrapper {} */
+
+.search-input {
+  font-size: 18px;
+}
+
+.movies-app__search-input {
+  display: block;
+  width: 92.87%;
+  height: 40px;
+  margin: 0 auto 16px auto;
+}
+
+/* .spin {} */
+
+.movies-app__spin {
+  position: fixed;
+  z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.main-alert {
+  text-align: center;
+}
+
+.movies-app__main-alert {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+/* .pagination {} */
+
+.movies-app__pagination {
+  margin: 0 auto;
+}
+
+@media (max-width: 1010px) {
+  .movies-app {
+    padding: 0 36px;
+  }
+
+  .movies-app__search-input {
+    margin: 0 auto 8px auto;
+  }
+}
