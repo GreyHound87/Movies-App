@@ -22,7 +22,7 @@ function getRatingColor(rating) {
 function MoviesList({ moviesData, guestSessionId, saveRatedMovie, deviceType }) {
   const cardHeight = deviceType === 'mobile' ? '245px' : '279px'
   const titleLength = deviceType === 'mobile' ? 30 : 20
-  const overviewLength = deviceType === 'mobile' ? 240 : 220
+  const overviewLength = deviceType === 'mobile' ? 240 : 210
 
   function textCutter(text, maxLength) {
     if (text.length <= maxLength) {
@@ -114,28 +114,8 @@ function MoviesList({ moviesData, guestSessionId, saveRatedMovie, deviceType }) 
                         : movie.rating
                     }
                     onChange={async (value) => {
-                      await moviesService.rateMovieDebounced(movie.id, value, guestSessionId)
-
-                      const serverData = await moviesService.getRatedMoviesDebounced(guestSessionId, 1)
-                      await saveRatedMovie(movie.id, value)
-                      if (serverData.total_results && ratedMovies) {
-                        if (serverData.total_results < Object.keys(ratedMovies).length) {
-                          const missingMovieIds = Object.keys(ratedMovies).filter(
-                            (movieId) => !serverData.results.some((result) => result.id === movieId)
-                          )
-
-                          const maxRetries = 3
-                          let retryCount = 0
-
-                          for (const movieId of missingMovieIds) {
-                            moviesService.rateMovieDebounced(movieId, ratedMovies[movieId], guestSessionId)
-                            retryCount += 1
-                            if (retryCount >= maxRetries) {
-                              break
-                            }
-                          }
-                        }
-                      }
+                      await moviesService.rateMovie(movie.id, value, guestSessionId)
+                      await saveRatedMovie(movie.id, value, movie)
                     }}
                   />
                 </div>

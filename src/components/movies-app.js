@@ -36,6 +36,7 @@ export default class MoviesApp extends Component {
     guestSessionId: localStorage.getItem('guest_session_id'),
     appMode: 'search',
     ratedMovies: JSON.parse(localStorage.getItem('stored_rated_movies')) || {},
+    ratedMoviesDataCopy: JSON.parse(localStorage.getItem('rated_movies_data_copy')) || [],
     alert: { type: '', mess: '' },
   }
 
@@ -43,8 +44,6 @@ export default class MoviesApp extends Component {
     await this.fetchGenres()
     await this.createGuestSession()
     await this.fetchPopularMovies()
-    const { guestSessionId } = this.state
-    await this.fetchRatedMovies(guestSessionId, 1)
   }
 
   async handleSearch(query, page = 1) {
@@ -86,20 +85,35 @@ export default class MoviesApp extends Component {
 
   handlePageChangeDebounced = _debounce(this.handlePageChange, 300)
 
-  saveRatedMovie = (movieId, rating) => {
+  saveRatedMovie = (movieId, rating, movie) => {
     this.showAlert('info', 'Rating saving process')
+
     this.setState(
-      (prevState) => ({
-        ratedMovies: {
-          ...prevState.ratedMovies,
-          [movieId]: rating,
-        },
-      }),
+      (prevState) => {
+        const { ratedMovies, ratedMoviesDataCopy } = prevState
+
+        const existingMovieIndex = ratedMoviesDataCopy.findIndex((m) => m.id === movieId)
+
+        const updatedRatedMoviesDataCopy =
+          existingMovieIndex !== -1
+            ? ratedMoviesDataCopy.map((m) => (m.id === movieId ? { ...m, rating } : m))
+            : [...ratedMoviesDataCopy, { ...movie, rating }]
+
+        return {
+          ratedMovies: {
+            ...ratedMovies,
+            [movieId]: rating,
+          },
+          ratedMoviesDataCopy: updatedRatedMoviesDataCopy,
+        }
+      },
       () => {
-        const { ratedMovies } = this.state
-        this.showAlert('success', 'Rated movies updated.')
+        const { ratedMovies, ratedMoviesDataCopy } = this.state
+
         localStorage.setItem('stored_rated_movies', JSON.stringify(ratedMovies))
-        this.showAlert('success', 'Rated movies saved.')
+        localStorage.setItem('rated_movies_data_copy', JSON.stringify(ratedMoviesDataCopy))
+
+        this.showAlert('success', 'Rated movies updated and saved.')
       }
     )
   }
@@ -125,9 +139,35 @@ export default class MoviesApp extends Component {
     this.setState({ loading: true, error: null })
 
     try {
-      const data = await this.MoviesService.getRatedMoviesDebounced(guestSessionId, page)
-      this.showAlert('success', 'Rated films have been successfully received.')
-      this.setState({ ratedMoviesData: data.results, loading: false, error: null, totalRated: data.total_results })
+      const data = await this.MoviesService.getRatedMovies(guestSessionId, page)
+      const { ratedMoviesDataCopy } = this.state
+      const defaultPageSize = 20
+
+      if (data.total_results < ratedMoviesDataCopy.length) {
+        const startIndex = (page - 1) * defaultPageSize
+        const endIndex = startIndex + defaultPageSize
+        const slicedData = ratedMoviesDataCopy.slice(startIndex, endIndex)
+
+        this.setState({
+          ratedMoviesData: slicedData,
+          loading: false,
+          error: null,
+          totalRated: ratedMoviesDataCopy.length,
+        })
+
+        this.showAlert(
+          'warning',
+          'Problems synchronizing with the server, local data temporarily used to display rated films.'
+        )
+      } else {
+        this.setState({
+          ratedMoviesData: data.results,
+          loading: false,
+          error: null,
+          totalRated: data.total_results,
+        })
+        this.showAlert('success', 'Rated films successfully received from the server.')
+      }
     } catch (error) {
       this.showAlert('error', `Error receiving rated films: ${error.message}`)
       this.setState({ loading: false, error: error.message })
@@ -173,6 +213,7 @@ export default class MoviesApp extends Component {
           localStorage.removeItem('guest_session_id')
           localStorage.removeItem('expires_at')
           localStorage.removeItem('stored_rated_movies')
+          localStorage.removeItem('rated_movies_data_copy')
         }
       } else {
         const data = await this.MoviesService.createGuestSession()
@@ -253,6 +294,7 @@ export default class MoviesApp extends Component {
                   showSizeChanger={false}
                   hideOnSinglePage
                   onChange={this.handlePageChangeDebounced}
+                  style={{ display: 'flex', justifyContent: 'center' }}
                 />
               </>
             )}
@@ -297,6 +339,7 @@ export default class MoviesApp extends Component {
                   showSizeChanger={false}
                   hideOnSinglePage
                   onChange={this.handlePageChangeDebounced}
+                  style={{ display: 'flex', justifyContent: 'center' }}
                 />
               </>
             )}

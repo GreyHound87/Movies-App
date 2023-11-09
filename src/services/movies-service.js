@@ -1,5 +1,3 @@
-import _debounce from 'lodash/debounce'
-
 import { API_START_URL, API_KEY, API_READ_ACC_TOKEN } from '../config'
 
 export default class MoviesService {
@@ -44,7 +42,7 @@ export default class MoviesService {
   }
 
   async getRatedMovies(guestSessionId, page) {
-    const url = `${API_START_URL}guest_session/${guestSessionId}/rated/movies?language=en-US&page=${page}&api_key=${API_KEY}&sort_by=created_at.asc`
+    const url = `${API_START_URL}guest_session/${guestSessionId}/rated/movies?api_key=${API_KEY}&language=en-US&page=${page}`
     const options = {
       method: 'GET',
       headers: {
@@ -52,26 +50,6 @@ export default class MoviesService {
       },
     }
     return this.reqRes(url, options)
-  }
-
-  async getRatedMoviesDebounced(guestSessionId, page, retries = 3) {
-    try {
-      const response = await this.getRatedMovies(guestSessionId, page)
-      if (!response.success && retries > 0) {
-        await this.getRatedMoviesDebounced(guestSessionId, page, retries - 1)
-      }
-      return response
-    } catch (error) {
-      if (retries > 0) {
-        await this.getRatedMoviesDebounced(guestSessionId, page, retries - 1)
-      } else {
-        throw new Error(
-          `Error fetching rated movies for guest session ${guestSessionId}: ${error.message}. Max retries reached.`
-        )
-      }
-    }
-
-    return null
   }
 
   async searchMovies(query, page) {
@@ -111,7 +89,8 @@ export default class MoviesService {
     if (typeof newRating !== 'number' || newRating <= 0) {
       newRating = 0.5
     }
-    const url = `${API_START_URL}movie/${movieId}/rating?guest_session_id=${guestSessionId}&api_key=${API_KEY}`
+
+    const url = `${API_START_URL}movie/${movieId}/rating?api_key=${API_KEY}&guest_session_id=${guestSessionId}`
     const options = {
       method: 'POST',
       headers: {
@@ -125,24 +104,4 @@ export default class MoviesService {
 
     return response
   }
-
-  rateMovieDebounced = _debounce(async (movieId, rating, guestSessionId, retries = 3) => {
-    try {
-      const response = await this.rateMovie(movieId, rating, guestSessionId)
-
-      if (!response.success) {
-        if (retries > 0) {
-          await this.rateMovieDebounced(movieId, rating, guestSessionId, retries - 1)
-        }
-      }
-    } catch (error) {
-      if (retries > 0) {
-        await this.rateMovieDebounced(movieId, rating, guestSessionId, retries - 1)
-      } else {
-        throw new Error(
-          `Error rating movie ${movieId}: ${error.message}. Max retries reached. Could not rate the movie.`
-        )
-      }
-    }
-  }, 300)
 }
