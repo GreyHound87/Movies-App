@@ -1,14 +1,3 @@
-.movies-list {
-  padding: 20px 35px;
-}
-
-.movies-app__movies-list {
-  width: 1010px;
-  margin: 0 auto;
-}
-
-/* .movies-list__item {} */
-
 .movie-card {
   overflow: hidden;
 }
@@ -178,18 +167,6 @@
 }
 
 @media (max-width: 1010px) {
-  .movies-list {
-    padding: 0 0 24px 0;
-  }
-
-  .movies-app__movies-list {
-    width: 387px;
-  }
-
-  .movies-list__item {
-    height: 100%;
-  }
-
   .movies-list__movie-card {
     margin-bottom: 16px;
     padding: 3px 5px 0 10px;

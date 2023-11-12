@@ -1,0 +1,24 @@
+.movies-list {
+  padding: 20px 35px;
+}
+
+.movies-app__movies-list {
+  width: 1010px;
+  margin: 0 auto;
+}
+
+/* .movies-list__item {} */
+
+@media (max-width: 1010px) {
+  .movies-list {
+    padding: 0 0 24px 0;
+  }
+
+  .movies-app__movies-list {
+    width: 387px;
+  }
+
+  .movies-list__item {
+    height: 100%;
+  }
+}

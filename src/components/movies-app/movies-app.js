@@ -3,10 +3,9 @@ import { Spin, Alert, Input, Pagination, Tabs } from 'antd'
 import { format } from 'date-fns'
 import _debounce from 'lodash/debounce'
 
-import MoviesService from '../services/movies-service'
-
-import MoviesList from './movies-list'
-import { MoviesServiceProvider } from './movies-context'
+import MoviesService from '../../services/movies-service'
+import MoviesList from '../movies-list/movies-list'
+import { MoviesServiceProvider } from '../movies-context/movies-context'
 import './movies-app.css'
 
 function getDeviceType() {
@@ -44,6 +43,13 @@ export default class MoviesApp extends Component {
     await this.fetchGenres()
     await this.createGuestSession()
     await this.fetchPopularMovies()
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.setState({
+      error: errorInfo,
+    })
+    this.showAlert('error', `${error}; ${errorInfo}`)
   }
 
   async handleSearch(query, page = 1) {
@@ -188,6 +194,9 @@ export default class MoviesApp extends Component {
   async fetchGenres() {
     try {
       const data = await this.MoviesService.getGenres()
+      if (data.genres.length === 0) {
+        this.showAlert('error', 'Error: No genres found.')
+      }
       this.setState({ genres: data.genres })
       this.showAlert('success', 'Genres were obtained successfully.')
     } catch (error) {
@@ -364,14 +373,18 @@ export default class MoviesApp extends Component {
             activeKey={appMode}
             items={items}
             onChange={(key) => {
+              this.setState({ appMode: key })
               if (key === 'rated') {
                 this.fetchRatedMovies(guestSessionId, ratedPage)
-              } else if (key === 'search' && searchQuery.trim() === '') {
+                return
+              }
+              if (key === 'search' && searchQuery.trim() === '') {
                 this.fetchPopularMovies()
-              } else if (key === 'search') {
+                return
+              }
+              if (key === 'search') {
                 this.handleSearch(searchQuery, currentPage)
               }
-              this.setState({ appMode: key })
             }}
             centered
             size={size}
